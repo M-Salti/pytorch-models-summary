@@ -1,5 +1,6 @@
 from collections import namedtuple
 from functools import partial
+from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -18,12 +19,12 @@ num_trainable = lambda module: sum(p.numel() for p in module.parameters() if p.r
 
 
 @torch.no_grad()
-def create_summary_table(model: nn.Module, input_shape: tuple[int]) -> DataFrame:
+def create_summary_table(model: nn.Module, input_shape: Tuple[int, ...]) -> DataFrame:
     """Creates a pandas DataFrame containing a summary of the model layers, output shapes and number of parameters
 
     Args:
         model (nn.Module): This is your PyTorch model
-        input_shape (tuple[int]): Model input shape without batch dimension
+        input_shape (Tuple[int, ...]): Model input shape without batch dimension
 
     Returns:
         DataFrame: Model summary
@@ -69,12 +70,12 @@ def create_summary_table(model: nn.Module, input_shape: tuple[int]) -> DataFrame
     return summary
 
 
-def summary(model: nn.Module, input_shape: tuple[int], view_df: bool = False, tablefmt: str = "fancy_grid"):
+def summary(model: nn.Module, input_shape: Tuple[int, ...], view_df: bool = False, tablefmt: str = "fancy_grid"):
     """Print a summary of the model layers and number of trainable/non-trainable parameters.
 
     Args:
         model (nn.Module): This is your PyTorch model
-        input_shape (tuple[int]): Model input shape without batch dimension
+        input_shape (Tuple[int, ...]): Model input shape without batch dimension
         view_df (bool, optional): If true, will display a pandas DataFrame. Defaults to False.
         tablefmt (str, optional): The table print format. Check the `tabulate` package docs for more info. Defaults to "fancy_grid".
     """
