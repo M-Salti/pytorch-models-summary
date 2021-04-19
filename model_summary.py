@@ -18,7 +18,6 @@ num_params = lambda module: sum(p.numel() for p in module.parameters())
 num_trainable = lambda module: sum(p.numel() for p in module.parameters() if p.requires_grad)
 
 
-@torch.no_grad()
 def create_summary_table(model: nn.Module, input_shape: Tuple[int, ...]) -> DataFrame:
     """Creates a pandas DataFrame containing a summary of the model layers, output shapes and number of parameters
 
@@ -30,13 +29,13 @@ def create_summary_table(model: nn.Module, input_shape: Tuple[int, ...]) -> Data
         DataFrame: Model summary
     """
 
-    flip_back_train = False
+    flip_back_train = False  # remember to set the model back to train mode at the end
     if model.training:
         flip_back_train = True
-        model.eval()
+        model.eval()  # set the model in eval mode to avoid any accidental modification of parameters
 
-    handles: list[RemovableHandle] = []
-    infos: dict[str, LayerInfo] = dict()
+    handles: list[RemovableHandle] = []  # stores the hooks handles to remove them later
+    infos: dict[str, LayerInfo] = dict()  # stores the summary information of each layer
 
     def save_layer_info(module: nn.Module, input, output, name: str):
         infos[name] = LayerInfo(
@@ -50,12 +49,13 @@ def create_summary_table(model: nn.Module, input_shape: Tuple[int, ...]) -> Data
         handles.append(handle)
 
     dummy_input = torch.empty(input_shape).unsqueeze(0)
-    model(dummy_input)
+    with torch.no_grad():
+        model(dummy_input)
 
     if flip_back_train:
         model.train()
 
-    for handle in handles:
+    for handle in handles:  # remove all the hooks
         handle.remove()
     handles.clear()
 
